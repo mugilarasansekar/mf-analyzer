@@ -2,7 +2,7 @@
 
 An elegant, minimal, and high-performance client-side web application designed to track, backtest, and compare Indian Mutual Funds using live chronological datasets. 
 
-🚀 **[Live Demo Available Here](https://yourusername.github.io/repository-name/)** *(Replace with your actual GitHub Pages link!)*
+🚀 **[Live Demo Available Here](https://mugilarasansekar.github.io/mf-analyzer/)**
 
 ---
 
