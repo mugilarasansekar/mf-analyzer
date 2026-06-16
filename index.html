@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MF Analyzer — Indian Mutual Funds</title>
+  
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%2310141c'/%3E%3Ctext y='70' x='18' font-family='monospace' font-size='65' font-weight='bold' fill='%2300d4aa'%3E▮%3C/text%3E%3C/svg%3E" id="dynamicFavicon" />
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="header">
+    <div class="header-inner">
+      <div class="logo" id="logoHomeBtn" title="Return to Dashboard Landing Page" role="button" style="cursor: pointer;">
+        <span class="logo-mark">▮</span>
+        <span class="logo-text">MF<span class="logo-accent">Analyzer</span></span>
+      </div>
+      <div class="header-right">
+        <button id="themeToggleBtn" class="theme-toggle-control" title="Toggle UI Theme Space">
+          <span class="mode-icon-sun">☀️</span>
+          <span class="mode-icon-moon">🌙</span>
+        </button>
+        
+        <div id="statusIndicator" class="status-indicator-widget">
+          <span class="status-pulse"></span>
+          <span id="statusText" class="status-msg">System Ready</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="search-bar-sticky">
+    <div class="search-container">
+      <input type="text" id="searchInput" placeholder="Search primary mutual fund by name or AMC code..." autocomplete="off" />
+      <div class="dropdown-results" id="dropdownResults"></div>
+    </div>
+  </div>
+
+  <main class="main-layout" id="mainDashboard" style="display:none">
+    <div class="fund-title-block">
+      <h1 id="fundTitle">Fund Scheme Name</h1>
+      <div class="meta-pills">
+        <span class="pill" id="metaCode">—</span>
+        <span class="pill" id="metaCategory">—</span>
+        <span class="pill" id="metaType">—</span>
+      </div>
+    </div>
+
+    <div class="tabs-nav-bar">
+      <button class="tab-btn active" data-tab="paneOverview">Overview & NAV Trajectory</button>
+      <button class="tab-btn" data-tab="paneRolling">Rolling Returns Analysis</button>
+      <button class="tab-btn" data-tab="paneSip">SIP Calculator Backtest</button>
+      <button class="tab-btn" data-tab="paneRisk">Risk & Drawdown Matrix</button>
+      <button class="tab-btn tab-accent" data-tab="paneCompare">Fund Comparison Workspace</button>
+    </div>
+
+    <div id="paneOverview" class="tab-panel active">
+      <div class="metrics-grid">
+        <div class="metric-card">
+          <div class="metric-label">Latest NAV</div>
+          <div class="metric-value" id="valNav">—</div>
+          <div class="metric-sub" id="valNavDate">—</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Compound CAGR</div>
+          <div class="metric-value" id="valCagr">—</div>
+          <div class="metric-sub">Since Inception</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Volatility (Std Dev)</div>
+          <div class="metric-value" id="valStdDev">—</div>
+          <div class="metric-sub">Annualized</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Sharpe Ratio</div>
+          <div class="metric-value" id="valSharpe">—</div>
+          <div class="metric-sub">Rf: 6.50%</div>
+        </div>
+      </div>
+
+      <div class="chart-row-full">
+        <div class="chart-header">
+          <h3>Net Asset Value (NAV) Trajectory History</h3>
+        </div>
+        <div class="chart-wrapper-large">
+          <canvas id="navChart"></canvas>
+        </div>
+      </div>
+
+      <div class="split-grid">
+        <div class="table-card">
+          <h3>Annualized Trailing Performance Metrics</h3>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Period Horizon</th>
+                <th>Absolute Growth</th>
+                <th>Annualized Return (CAGR)</th>
+              </tr>
+            </thead>
+            <tbody id="trailingReturnsBody"></tbody>
+          </table>
+        </div>
+        
+        <div class="table-card">
+          <h3>Calendar Year Yield Trackers</h3>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Calendar Year</th>
+                <th>Absolute NAV Change</th>
+                <th>Performance Status</th>
+              </tr>
+            </thead>
+            <tbody id="calendarReturnsBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div id="paneRolling" class="tab-panel">
+      <div class="chart-row-full">
+        <div class="chart-header flex-header">
+          <div>
+            <h3>Rolling Returns Performance Analysis</h3>
+            <p class="section-subtitle">Provides point-to-point holding history visualization without terminal date biases.</p>
+          </div>
+          <div class="rolling-controls-wrapper">
+            <label class="control-label">Analysis Horizon:</label>
+            <div class="period-btn-group" id="rollingPeriodContainer"></div>
+          </div>
+        </div>
+        <div class="chart-wrapper-ultra-large">
+          <canvas id="rollingChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div id="paneSip" class="tab-panel">
+      <div class="split-grid-sip">
+        <div class="table-card control-inputs-card">
+          <h3>Configure SIP Backtest Simulation</h3>
+          <p class="section-subtitle">Simulate a recurring investment strategy using actual historical date check-points.</p>
+          <div class="input-form-group">
+            <label for="sipAmountInput">Monthly Investment Amount (₹)</label>
+            <input type="number" id="sipAmountInput" value="10000" min="500" step="500" />
+          </div>
+          <div class="input-form-group">
+            <label for="sipDayInput">Investment Day of Month</label>
+            <input type="number" id="sipDayInput" value="5" min="1" max="28" />
+          </div>
+          <button id="runSipBtn" class="primary-action-btn">Execute Backtest Simulation</button>
+        </div>
+
+        <div class="metrics-grid">
+          <div class="metric-card sip-result-accent">
+            <div class="metric-label">Total Corpus Value</div>
+            <div class="metric-value" id="sipTotalValue">₹0</div>
+            <div class="metric-sub">Accumulated Portfolio</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Total Amount Invested</div>
+            <div class="metric-value" id="sipInvestedAmount">₹0</div>
+            <div class="metric-sub" id="sipTotalMonths">0 Months Total</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Absolute Gains Yield</div>
+            <div class="metric-value" id="sipAbsoluteGain">—</div>
+            <div class="metric-sub" id="sipProfitLossAmt">₹0 Profit</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Total Units Held</div>
+            <div class="metric-value" id="sipTotalUnits">0</div>
+            <div class="metric-sub">Average Purchase Cost</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="paneRisk" class="tab-panel">
+      <div class="split-grid">
+        <div class="table-card stats-summary-card">
+          <h3>Advanced Risk Profile Metrics</h3>
+          <p class="section-subtitle">Statistical dimensions to analyze historical stress scenarios.</p>
+          <div class="risk-metric-row">
+            <span class="risk-key">Peak Historical NAV</span>
+            <span class="risk-val" id="riskPeakNav">—</span>
+          </div>
+          <div class="risk-metric-row">
+            <span class="risk-key">Maximum Historical Drawdown Drop</span>
+            <span class="risk-val bad" id="riskMaxDrawdown">—</span>
+          </div>
+          <div class="risk-metric-row">
+            <span class="risk-key">Longest Peak-to-Peak Recovery Cycle</span>
+            <span class="risk-val" id="riskRecoveryDays">—</span>
+          </div>
+          <div class="risk-metric-row">
+            <span class="risk-key">Positive Net Performance Days Ratio</span>
+            <span class="risk-val good" id="riskPositiveDaysPct">—</span>
+          </div>
+        </div>
+
+        <div class="table-card instruction-info-box">
+          <h3>Understanding Risk Metrics</h3>
+          <p class="info-paragraph"><strong>Maximum Drawdown</strong> tracks the largest peak-to-trough drop in value before a new peak is achieved. It represents the worst-case capital destruction risk scenario faced by historical investors.</p>
+        </div>
+      </div>
+    </div>
+
+    <div id="paneCompare" class="tab-panel">
+      <div class="comparison-search-box table-card">
+        <h3>Select Secondary Fund for Comparative Analysis</h3>
+        <p class="section-subtitle">Type and choose another fund from the Indian mutual fund registry to compare performance scales head-to-head.</p>
+        <div class="search-container">
+          <input type="text" id="compareSearchInput" placeholder="Search benchmark/comparison fund name..." autocomplete="off" />
+          <div class="dropdown-results" id="compareDropdownResults"></div>
+        </div>
+      </div>
+
+      <div id="compareMatrixContainer" style="display: none; margin-top: 24px;">
+        <div class="table-card" style="margin-bottom: 24px;">
+          <h3>Head-to-Head Core Metrics Profile</h3>
+          <table class="data-table compare-data-table">
+            <thead>
+              <tr>
+                <th>Analytical Variable</th>
+                <th id="compareNamePrimary" class="primary-text-mark">Primary Scheme</th>
+                <th id="compareNameSecondary" class="secondary-text-mark">Secondary Comparison Scheme</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Latest NAV Value</strong></td>
+                <td id="compPrimNav">—</td>
+                <td id="compSecNav">—</td>
+              </tr>
+              <tr>
+                <td><strong>Inception CAGR Yield</strong></td>
+                <td id="compPrimCagr" class="font-mono">—</td>
+                <td id="compSecCagr" class="font-mono">—</td>
+              </tr>
+              <tr>
+                <td><strong>Annualized Volatility (Risk Spectrum)</strong></td>
+                <td id="compPrimVol">—</td>
+                <td id="compSecVol">—</td>
+              </tr>
+              <tr>
+                <td><strong>Sharpe Risk-Adjusted Efficiency</strong></td>
+                <td id="compPrimSharpe">—</td>
+                <td id="compSecSharpe">—</td>
+              </tr>
+              <tr>
+                <td><strong>Worst-Case Max Drawdown Profile</strong></td>
+                <td id="compPrimDrawdown" class="bad">—</td>
+                <td id="compSecDrawdown" class="bad">—</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="chart-row-full">
+          <h3>Normalized Growth Track Performance Overlap (% Base Scale)</h3>
+          <p class="section-subtitle">Both funds are re-indexed to base value (100.0) from the point where chronological paths overlap, tracking growth divergence.</p>
+          <div class="chart-wrapper-ultra-large">
+            <canvas id="compareChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div class="empty-state" id="emptyState">
+    <div class="empty-inner">
+      <div class="empty-icon">◈</div>
+      <h2 style="font-weight: 500; margin-bottom: 6px;">Mutual Fund Performance Sandbox</h2>
+      <p style="color: var(--text-2); font-size: 13px;">Type into the search terminal above to pull historical datasets down instantly.</p>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <footer class="footer">
+    <div class="container">
+      <span>Data providers: <a href="https://mfapi.in" target="_blank">mfapi.in</a> · Static Indices tracking</span>
+      <span>Calculations are point-to-point compounded continuously.</span>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
