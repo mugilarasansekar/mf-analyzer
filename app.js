@@ -37,7 +37,6 @@ function showToast(msg, dur = 2500) {
   setTimeout(() => t.classList.remove('show'), dur);
 }
 
-// Fixed theme/metric matching utility
 function colorClass(val, inverse = false) {
   if (val == null || isNaN(val)) return 'neutral';
   if (inverse) return val < 0 ? 'good' : val > 0 ? 'bad' : 'neutral';
@@ -199,7 +198,9 @@ function calculateRollingReturnsData(data, years) {
 async function loadSecondaryComparisonScheme(code) {
   $('compareDropdownResults').style.display = 'none';
   $('compareSearchInput').value = '';
-  updateStatus(`Loading comparative stream [${code}]...`, true);
+  
+  // UNIFIED STATUS
+  updateStatus("Fetching...", true);
 
   try {
     const res = await fetch(`${MFAPI}/${code}`);
@@ -492,7 +493,8 @@ function setupRollingPeriodButtons() {
       btn.classList.add('active');
       state.rollingPeriodYears = p.value;
       
-      updateStatus(`Re-calculating ${p.label} Rolling Curve...`, true);
+      // UNIFIED STATUS
+      updateStatus("Fetching...", true);
       setTimeout(() => {
         const points = calculateRollingReturnsData(state.navData, state.rollingPeriodYears);
         renderRollingChart(points);
@@ -509,7 +511,9 @@ function setupRollingPeriodButtons() {
 async function selectScheme(code, name) {
   $('searchInput').value = '';
   $('dropdownResults').style.display = 'none';
-  updateStatus(`Loading Scheme Data [${code}]...`, true);
+  
+  // UNIFIED STATUS
+  updateStatus("Fetching...", true);
 
   try {
     const res = await fetch(`${MFAPI}/${code}`);
@@ -689,7 +693,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   
   $('logoHomeBtn').addEventListener('click', returnToHomepage);
 
-  updateStatus("Initialising Index Search Engine...", true);
+  // UNIFIED STATUS
+  updateStatus("Fetching...", true);
   try {
     const res = await fetch(MFAPI);
     state.allSchemes = await res.json();
