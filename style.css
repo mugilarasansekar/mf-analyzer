@@ -265,3 +265,87 @@ body {
   font-weight: 500;
   transition: color var(--transition);
 }
+
+/* ==========================================================================
+   DESIGN REFRESH — additions
+   ========================================================================== */
+
+/* Metric card hover lift */
+.metric-card {
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+.metric-card:hover {
+  border-color: var(--accent-border);
+  box-shadow: 0 4px 16px rgba(0, 212, 170, 0.06);
+}
+
+/* Tighter, cleaner header */
+.header-inner {
+  padding: 0 20px;
+}
+
+/* Fund title size tweak */
+.fund-title-block h1 {
+  font-size: 19px;
+  line-height: 1.35;
+}
+
+/* Tab bar no horizontal scroll on desktop */
+.tabs-nav-bar {
+  scrollbar-width: none;
+}
+.tabs-nav-bar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Better search focus ring */
+.search-container input:focus {
+  box-shadow: 0 0 0 3px var(--accent-dim);
+}
+
+/* Risk rows slightly more breathing room */
+.risk-metric-row {
+  padding: 14px 0;
+}
+
+/* Info paragraphs spacing */
+.info-paragraph + .info-paragraph {
+  margin-top: 10px;
+}
+
+/* SIP grid: allow 3 columns on wider screens */
+@media (min-width: 1100px) {
+  .split-grid-sip .metrics-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Comparison table column widths */
+.compare-data-table td:first-child {
+  width: 42%;
+  color: var(--text-2);
+  font-size: 13px;
+}
+
+/* Period toggle button group gap */
+.period-btn-group {
+  gap: 6px;
+}
+
+/* Subtle zebra on data tables */
+.data-table tbody tr:nth-child(even) {
+  background: var(--bg-3);
+}
+
+/* Chart section label */
+.chart-header h3 {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+/* Status widget cleaner look */
+.status-indicator-widget {
+  font-size: 10px;
+  padding: 3px 10px;
+}
